@@ -12,10 +12,7 @@ defmodule Scraper.MixProject do
   end
 
   def application do
-    [
-      extra_applications: [:logger],
-      mod: {Scraper.Application, []}
-    ]
+    [extra_applications: [:logger]]
   end
 
   defp deps do

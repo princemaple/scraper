@@ -2,8 +2,8 @@ defmodule Scraper.WorkerSupervisor do
   use DynamicSupervisor
 
   def start_link(opts \\ []) do
-    {name, opts} = Keyword.pop(opts, :name)
-    DynamicSupervisor.start_link(__MODULE__, opts, name: name || __MODULE__)
+    {server_opts, opts} = Keyword.split(opts, [:name])
+    DynamicSupervisor.start_link(__MODULE__, opts, server_opts)
   end
 
   def init(opts) do

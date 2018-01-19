@@ -1,7 +1,12 @@
-defmodule Scraper.Application do
-  use Application
+defmodule Scraper.Supervisor do
+  use Supervisor
 
-  def start(_type, _args) do
+  def start_link(opts \\ []) do
+    {server_opts, opts} = Keyword.split(opts, [:name])
+    Supervisor.start_link(__MODULE__, opts, server_opts)
+  end
+
+  def init(opts) do
     children = [
       Supervisor.child_spec(
         Agent,
@@ -15,16 +20,16 @@ defmodule Scraper.Application do
       ),
       {
         Scraper.WorkerSupervisor,
-        name: Scraper.WorkerSupervisor,
-        max_children: 5,
+        name: Scraper.WorkerSupervisor, max_children: 5
       },
       {
         Scraper.Manager,
-        name: Scraper.Manager,
+        name: Scraper.Manager
       }
     ]
 
-    opts = [strategy: :one_for_one, name: Scraper.Supervisor]
-    Supervisor.start_link(children, opts)
+    opts = Keyword.merge([strategy: :one_for_one], opts)
+
+    Supervisor.init(children, opts)
   end
 end

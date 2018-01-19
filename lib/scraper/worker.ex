@@ -8,24 +8,27 @@ defmodule Scraper.Worker do
   end
 
   def init(url) do
-    send self(), :start
+    send(self(), :start)
     {:ok, url}
   end
 
   def handle_info(:start, url) do
-    case HTTPoison.get(url, [], [follow_redirect: true]) do
+    case HTTPoison.get(url, [], follow_redirect: true) do
       {:ok, %{body: body}} ->
         html = Floki.parse(body)
         links = Floki.attribute(html, "a", "href")
         img_srcs = Floki.attribute(html, "img", "src")
+
         Agent.update(Scraper.LinksBuffer, fn buffer ->
           buffer ++ filter_links(links, url)
         end)
+
         Agent.update(Scraper.DataStore, fn store ->
           MapSet.union(store, MapSet.new(img_srcs))
         end)
+
       {:error, %HTTPoison.Error{reason: reason}} ->
-        Logger.error(inspect reason)
+        Logger.error(inspect(reason))
     end
 
     {:stop, :shutdown, url}
