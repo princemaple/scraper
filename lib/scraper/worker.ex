@@ -24,8 +24,8 @@ defmodule Scraper.Worker do
         Agent.update(Scraper.DataStore, fn store ->
           MapSet.union(store, MapSet.new(img_srcs))
         end)
-      {:error, reason} ->
-        Logger.error(reason)
+      {:error, %HTTPoison.Error{reason: reason}} ->
+        Logger.error(inspect reason)
     end
 
     {:stop, :shutdown, url}
