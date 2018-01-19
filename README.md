@@ -1,6 +1,16 @@
 # Scraper
 
-**TODO: Add description**
+Elixir Scraper WIP
+
+## TODO
+
+- [ ] retry
+- [ ] put back
+- [ ] custom process names
+- [ ] storage adapters
+- [ ] custom link filter
+- [ ] custom data selector
+- [ ] custom concurrency limits and other settings
 
 ## Installation
 
