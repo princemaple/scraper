@@ -4,13 +4,12 @@ Elixir Scraper WIP
 
 ## TODO
 
-- [ ] retry
-- [ ] put back
-- [ ] custom process names
-- [ ] storage adapters
+- [x] concurrency limit
+- [x] crawling depth limit
+- [x] persistence adapters
 - [ ] custom link filter
 - [ ] custom data selector
-- [ ] custom concurrency limits and other settings
+- [ ] retry / put back
 
 ## Installation
 
