@@ -1,5 +1,12 @@
 defmodule Scraper do
-  def queue(url) do
-    Agent.update(Scraper.LinksBuffer, fn links -> links ++ [url] end)
+  def start_link(scraper_id, entries \\ [], opts \\ []) do
+    on_start =
+      [scraper_id: scraper_id]
+      |> Enum.into(opts)
+      |> Scraper.Supervisor.start_link()
+
+    Enum.each(entries, &Scraper.Scheduler.schedule(scraper_id, &1))
+
+    on_start
   end
 end

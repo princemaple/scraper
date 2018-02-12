@@ -1,30 +1,48 @@
 defmodule Scraper.Supervisor do
   use Supervisor
 
-  def start_link(opts \\ []) do
-    {server_opts, opts} = Keyword.split(opts, [:name])
-    Supervisor.start_link(__MODULE__, opts, server_opts)
+  def start_link(opts) do
+    Supervisor.start_link(__MODULE__, opts)
   end
 
   def init(opts) do
+    scraper_id = Keyword.fetch!(opts, :scraper_id)
+    {data_store, opts} = Keyword.pop(opts, :data_store, Scraper.Naive.DataStore)
+    {data_store_opts, opts} = Keyword.pop(opts, :data_store_opts, [])
+    {links_buffer, opts} = Keyword.pop(opts, :links_buffer, Scraper.Naive.LinksBuffer)
+    {links_buffer_opts, opts} = Keyword.pop(opts, :links_buffer_opts, [])
+    {max_workers, opts} = Keyword.pop(opts, :max_workers, System.schedulers_online() * 2)
+    {max_depth, opts} = Keyword.pop(opts, :max_depth, 1)
+
     children = [
-      Supervisor.child_spec(
-        Agent,
-        id: LinksBuffer,
-        start: {Agent, :start_link, [fn -> [] end, [name: Scraper.LinksBuffer]]}
-      ),
-      Supervisor.child_spec(
-        Agent,
-        id: DataStore,
-        start: {Agent, :start_link, [&MapSet.new/0, [name: Scraper.DataStore]]}
-      ),
       {
-        Scraper.WorkerSupervisor,
-        name: Scraper.WorkerSupervisor, max_children: 5
+        Registry,
+        keys: :unique, name: scraper_id
       },
       {
-        Scraper.Manager,
-        name: Scraper.Manager
+        DynamicSupervisor,
+        strategy: :one_for_one,
+        max_children: max_workers,
+        name: {:via, Registry, {scraper_id, :worker_supervisor}}
+      },
+      {
+        links_buffer,
+        [{:name, {:via, Registry, {scraper_id, :links_buffer}}} | links_buffer_opts]
+      },
+      {
+        data_store,
+        [{:name, {:via, Registry, {scraper_id, :data_store}}} | data_store_opts]
+      },
+      {
+        Scraper.Scheduler,
+        %{
+          scraper_id: scraper_id,
+          links_buffer: links_buffer,
+          data_store: data_store,
+          max_workers: max_workers,
+          max_depth: max_depth,
+          name: {:via, Registry, {scraper_id, :scheduler}}
+        }
       }
     ]
 
