@@ -1,6 +1,6 @@
 defmodule Scraper do
   def start_link(scraper_id, entries \\ [], opts \\ []) do
-    with {:ok, id} <-
+    with {:ok, pid} <-
            [scraper_id: scraper_id]
            |> Enum.into(opts)
            |> Scraper.Supervisor.start_link() do
