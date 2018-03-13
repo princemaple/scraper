@@ -7,7 +7,7 @@ Elixir Scraper WIP
 - [x] concurrency limit
 - [x] crawling depth limit
 - [x] persistence adapters
-- [ ] custom link filter
+- [x] custom link filter
 - [ ] custom data selector
 - [ ] retry / put back
 
