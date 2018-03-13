@@ -13,7 +13,10 @@ defmodule Scraper.Worker do
     {:ok, state}
   end
 
-  def handle_info(:start, state) do
+  def handle_info(
+        :start,
+        %{link_selectors: link_selectors, data_selectors: _data_selectors} = state
+      ) do
     case HTTPoison.get(state.link.url, [], follow_redirect: true) do
       {:ok, %{body: body}} ->
         html = Floki.parse(body)
