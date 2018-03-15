@@ -27,8 +27,11 @@ defmodule Scraper.Link do
   defp do_fix("/" <> _rest = path, uri), do: URI.to_string(%{uri | path: path})
   defp do_fix(link, uri), do: URI.to_string(%{uri | path: Path.join(uri.path, link)})
 
-  @spec select(links :: [String.t()], selectors :: [{module, atom, [any]} | Regex.t() | function]) ::
-          [String.t()]
+  @spec select(
+          links :: [String.t()],
+          selectors :: [{module, atom, [any]} | Regex.t() | function],
+          referrer_link :: t()
+        ) :: [String.t()]
   def select(links, selectors, referrer_link) do
     links
     |> Stream.reject(&match?("#" <> _rest, &1))
