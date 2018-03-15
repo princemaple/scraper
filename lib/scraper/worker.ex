@@ -15,14 +15,14 @@ defmodule Scraper.Worker do
 
   def handle_info(
         :start,
-        %{link_selectors: link_selectors, data_selectors: _data_selectors} = state
+        %{link_selectors: link_selectors, data_selectors: data_selectors} = state
       ) do
     case HTTPoison.get(state.link.url, [], follow_redirect: true) do
       {:ok, %{body: body}} ->
-        html = Floki.parse(body)
+        parsed_html = Floki.parse(body)
 
         if state.link.depth < state.max_depth do
-          links = Floki.attribute(html, "a", "href")
+          links = Floki.attribute(parsed_html, "a", "href")
 
           Enum.each(
             Scraper.Link.select(links, link_selectors, state.link),
@@ -30,12 +30,12 @@ defmodule Scraper.Worker do
           )
         end
 
-        img_srcs = Floki.attribute(html, "img", "src")
+        data = Scraper.Data.select(parsed_html, data_selectors)
 
-        Enum.each(img_srcs, fn img_src ->
+        Enum.each(data, fn piece ->
           state.data_store.put(
             {:via, Registry, {state.scraper_id, :data_store}},
-            Scraper.Link.fix(img_src, state.link)
+            piece
           )
         end)
 
