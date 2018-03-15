@@ -8,7 +8,7 @@ Elixir Scraper WIP
 - [x] crawling depth limit
 - [x] persistence adapters
 - [x] custom link filter
-- [ ] custom data selector
+- [x] custom data selector
 - [ ] retry / put back
 
 ## Installation
