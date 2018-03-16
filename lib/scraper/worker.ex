@@ -37,7 +37,7 @@ defmodule Scraper.Worker do
           )
         end
 
-        data = Scraper.Data.select(parsed_html, data_selectors)
+        data = parsed_html |> Scraper.Data.select(data_selectors) |> List.wrap
         Enum.each(data, &state.data_store.put(via(scraper_id, :data_store), &1))
 
       {:error, %HTTPoison.Error{reason: reason}} ->
