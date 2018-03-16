@@ -16,4 +16,13 @@ defmodule Scraper do
       {:ok, pid}
     end
   end
+
+  @doc """
+  Build the via tuple for the server name
+  """
+  defmacro via(scraper_id, which_part) do
+    quote do
+      {:via, Registry, {unquote(scraper_id), unquote(which_part)}}
+    end
+  end
 end

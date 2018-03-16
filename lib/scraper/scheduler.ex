@@ -1,6 +1,7 @@
 defmodule Scraper.Scheduler do
   use GenServer
 
+  import Scraper, only: [via: 2]
   require Logger
 
   def start_link(opts) do
@@ -8,18 +9,12 @@ defmodule Scraper.Scheduler do
     GenServer.start_link(__MODULE__, opts, Map.to_list(server_opts))
   end
 
-  def schedule(server, url) when is_binary(url) do
-    GenServer.call(
-      {:via, Registry, {server, :scheduler}},
-      {:link_ready, %Scraper.Link{url: url, depth: 0}}
-    )
+  def schedule(scraper_id, url) when is_binary(url) do
+    schedule(scraper_id, Scraper.Link.new(url))
   end
 
-  def schedule(server, %Scraper.Link{} = link) do
-    GenServer.call(
-      {:via, Registry, {server, :scheduler}},
-      {:link_ready, link}
-    )
+  def schedule(scraper_id, %Scraper.Link{} = link) do
+    GenServer.call(via(scraper_id, :scheduler), {:link_ready, link})
   end
 
   def init(opts), do: {:ok, Map.put(opts, :maximum_reached, false)}
@@ -34,7 +29,7 @@ defmodule Scraper.Scheduler do
         %{scraper_id: scraper_id, max_workers: max_workers} = state
       ) do
     %{active: worker_count} =
-      DynamicSupervisor.count_children({:via, Registry, {scraper_id, :worker_supervisor}})
+      DynamicSupervisor.count_children(via(scraper_id, :worker_supervisor))
 
     if worker_count < max_workers do
       Logger.debug("Starting worker for #{link.url}")
@@ -55,17 +50,17 @@ defmodule Scraper.Scheduler do
   end
 
   defp enqueue(link, %{scraper_id: scraper_id, links_buffer: links_buffer}) do
-    links_buffer.enqueue({:via, Registry, {scraper_id, :links_buffer}}, link)
+    links_buffer.enqueue(via(scraper_id, :links_buffer), link)
   end
 
   defp dequeue(%{scraper_id: scraper_id, links_buffer: links_buffer}) do
-    links_buffer.dequeue({:via, Registry, {scraper_id, :links_buffer}})
+    links_buffer.dequeue(via(scraper_id, :links_buffer))
   end
 
   defp start_worker(link, %{scraper_id: scraper_id} = state) do
     with {:ok, pid} <-
            DynamicSupervisor.start_child(
-             {:via, Registry, {scraper_id, :worker_supervisor}},
+             via(scraper_id, :worker_supervisor),
              {Scraper.Worker, Map.put(state, :link, link)}
            ) do
       Process.monitor(pid)

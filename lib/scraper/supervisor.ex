@@ -1,6 +1,8 @@
 defmodule Scraper.Supervisor do
   use Supervisor
 
+  import Scraper, only: [via: 2]
+
   def start_link(opts) do
     Supervisor.start_link(__MODULE__, opts)
   end
@@ -25,15 +27,15 @@ defmodule Scraper.Supervisor do
         DynamicSupervisor,
         strategy: :one_for_one,
         max_children: max_workers,
-        name: {:via, Registry, {scraper_id, :worker_supervisor}}
+        name: via(scraper_id, :worker_supervisor)
       },
       {
         links_buffer,
-        [{:name, {:via, Registry, {scraper_id, :links_buffer}}} | links_buffer_opts]
+        [{:name, via(scraper_id, :links_buffer)} | links_buffer_opts]
       },
       {
         data_store,
-        [{:name, {:via, Registry, {scraper_id, :data_store}}} | data_store_opts]
+        [{:name, via(scraper_id, :data_store)} | data_store_opts]
       },
       {
         Scraper.Scheduler,
@@ -45,7 +47,7 @@ defmodule Scraper.Supervisor do
           max_depth: max_depth,
           data_selectors: data_selectors,
           link_selectors: link_selectors,
-          name: {:via, Registry, {scraper_id, :scheduler}}
+          name: via(scraper_id, :scheduler)
         }
       }
     ]

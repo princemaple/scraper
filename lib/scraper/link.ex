@@ -7,6 +7,11 @@ defmodule Scraper.Link do
           referrer: String.t()
         }
 
+  @spec new(url :: String.t()) :: t
+  def new(url) do
+    %__MODULE__{url: url, depth: 0, referrer: nil}
+  end
+
   @spec new(url :: String.t(), referrer :: t) :: t
   def new(url, referrer) do
     %__MODULE__{
@@ -36,7 +41,7 @@ defmodule Scraper.Link do
     links
     |> Stream.reject(&match?("#" <> _rest, &1))
     |> Stream.map(&Scraper.Link.new(&1, referrer_link))
-    |> Stream.filter(&apply_link_selectors(&1, selectors))
+    |> Enum.filter(&apply_link_selectors(&1, selectors))
   end
 
   defp apply_link_selectors(link, selectors) do
