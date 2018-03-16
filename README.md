@@ -13,7 +13,7 @@ Elixir Scraper WIP
 
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
+[Available on Hex](https://hex.pm/docs/publish), the package can be installed
 by adding `scraper` to your list of dependencies in `mix.exs`:
 
 ```elixir
